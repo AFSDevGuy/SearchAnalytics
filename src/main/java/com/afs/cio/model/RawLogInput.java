@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
 
-@XmlRootElement(name="logItem")
+@XmlRootElement(name="RawLogInput")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class RawLogInput {
 

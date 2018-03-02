@@ -12,7 +12,12 @@ public class NullXmlFilter extends BaseXmlFilter {
     }
 
     @Override
-    public RawLogInput filter(RawLogInput inputItem) {
+    public Class getInputClass() {
+        return RawLogInput.class;
+    }
+
+    @Override
+    public Object filter(Object inputItem) {
         return inputItem;
     }
 }

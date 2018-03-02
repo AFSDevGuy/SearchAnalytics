@@ -24,10 +24,15 @@ public class StopwordXmlFilter extends BaseXmlFilter {
     }
 
     @Override
-    public RawLogInput filter(RawLogInput inputItem) {
-        List<String> cleanQuery = new ArrayList<>(Arrays.asList(inputItem.getTerm().split("\\s")));
+    public Class getInputClass() {
+        return RawLogInput.class;
+    }
+
+    @Override
+    public Object filter(Object inputItem) {
+        List<String> cleanQuery = new ArrayList<>(Arrays.asList(((RawLogInput)inputItem).getTerm().split("\\s")));
         try {
-            cleanQuery = normalize(inputItem.getTerm().toLowerCase());
+            cleanQuery = normalize(((RawLogInput)inputItem).getTerm().toLowerCase());
         } catch (IOException ex) {
             throw new RuntimeException("Error normalizing query", ex);
         }
@@ -38,7 +43,7 @@ public class StopwordXmlFilter extends BaseXmlFilter {
             }
             normalized.append(term);
         }
-        inputItem.setTerm(normalized.toString());
+        ((RawLogInput)inputItem).setTerm(normalized.toString());
         return inputItem;
     }
 

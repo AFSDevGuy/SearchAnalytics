@@ -23,21 +23,35 @@ public abstract class BaseXmlFilter {
 
     protected XMLStreamWriter outStream = null;
 
-    public abstract RawLogInput filter(RawLogInput inputItem);
+    public abstract Object filter(Object inputItem);
+
+    public abstract Class getInputClass();
+
+    public Class getOutputClass() {
+        return getInputClass();
+    }
 
     protected void cmdLine(String[] args) {
-        Options options = new Options();
-        options.addOption(Option.builder("infile").hasArgs().desc("input file name").type(String.class).build());
-        options.addOption(Option.builder("outfile").hasArg().desc("output file name").type(String.class).build());
+        this.cmdLine(args, null,null);
+    }
+
+
+    protected void cmdLine(String[] args, Options options, CommandLine cmd) {
+        if (options == null) {
+            options = new Options();
+            options.addOption(Option.builder("infile").hasArgs().desc("input file name").type(String.class).build());
+            options.addOption(Option.builder("outfile").hasArg().desc("output file name").type(String.class).build());
+        }
 
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse( options, args);
-        } catch (ParseException e) {
-            System.err.println( "Parsing failed.  Reason: " + e.getMessage() );
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "RawLogFilter", options );
+        if (cmd == null) {
+            try {
+                cmd = parser.parse(options, args);
+            } catch (ParseException e) {
+                System.err.println("Parsing failed.  Reason: " + e.getMessage());
+                HelpFormatter formatter = new HelpFormatter();
+                formatter.printHelp("RawLogFilter", options);
+            }
         }
 
         if (cmd.hasOption("infile")) {
@@ -80,24 +94,25 @@ public abstract class BaseXmlFilter {
 
     public void run() {
         try {
-            XmlFileOutput<RawLogInput> handler = new XmlFileOutput<RawLogInput>(RawLogInput.class);
+            XmlFileOutput<Object> handler = new XmlFileOutput<>(getOutputClass());
             handler.setOutStream(outStream);
             handler.init();
 
-            JAXBContext jc = JAXBContext.newInstance(RawLogInput.class);
+            JAXBContext jc = JAXBContext.newInstance(getInputClass());
             Unmarshaller unmarshaller = jc.createUnmarshaller();
             for (InputStream inStream : inStreams) {
                 XMLInputFactory xif = XMLInputFactory.newFactory();
                 StreamSource xml = new StreamSource(inStream);
                 XMLStreamReader xsr = xif.createXMLStreamReader(xml);
                 xsr.nextTag();
-                while(!xsr.getLocalName().equals("logItem")) {
+                String itemClassName = getInputClass().getSimpleName();
+                while(!xsr.getLocalName().equals(itemClassName)) {
                     xsr.nextTag();
                 }
                 String tagName = "N/A";
-                while (xsr.getLocalName().equals("logItem")) {
-                    JAXBElement<RawLogInput> jb = unmarshaller.unmarshal(xsr, RawLogInput.class);
-                    RawLogInput filtered = filter(jb.getValue());
+                while (xsr.getLocalName().equals(itemClassName)) {
+                    JAXBElement<RawLogInput> jb = unmarshaller.unmarshal(xsr, getInputClass());
+                    Object filtered = filter(jb.getValue());
                     if (filtered != null) {
                         handler.handleItem(filtered);
                     }

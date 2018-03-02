@@ -1,7 +1,6 @@
 package com.afs.cio;
 
 import com.afs.cio.model.RawLogInput;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.StopFilter;
 import org.apache.lucene.analysis.TokenStream;
@@ -25,10 +24,16 @@ public class StemNoiseXmlFilter extends BaseXmlFilter {
     }
 
     @Override
-    public RawLogInput filter(RawLogInput inputItem) {
-        List<String> cleanQuery = new ArrayList<>(Arrays.asList(inputItem.getTerm().split("\\s")));
+    public Class getInputClass() {
+        return RawLogInput.class;
+    }
+
+    @Override
+    public Object filter(Object inputItem) {
+        RawLogInput logItem = (RawLogInput)inputItem;
+        List<String> cleanQuery = new ArrayList<>(Arrays.asList(logItem.getTerm().split("\\s")));
         try {
-            cleanQuery = normalize(inputItem.getTerm());
+            cleanQuery = normalize(logItem.getTerm());
         } catch (IOException ex) {
             throw new RuntimeException("Error normalizing query", ex);
         }
@@ -39,7 +44,7 @@ public class StemNoiseXmlFilter extends BaseXmlFilter {
             }
             normalized.append(term);
         }
-        inputItem.setTerm(normalized.toString());
+        logItem.setTerm(normalized.toString());
         return inputItem;
     }
 

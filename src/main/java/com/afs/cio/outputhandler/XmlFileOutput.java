@@ -99,7 +99,7 @@ public class XmlFileOutput<T>  {
                 marshaller.marshal(item,outStream);
             }
         } catch (Exception e) {
-            throw new IllegalStateException("can't write candidate to output",e);
+            throw new IllegalStateException("can't write object to output",e);
         }
 
     }
@@ -113,6 +113,7 @@ public class XmlFileOutput<T>  {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
             String suffixTimeStamp = sdf.format(new Date());
             outStream.writeStartDocument(StandardCharsets.UTF_8.name(), "1.0");
+            // TODO: customize with item class name if possible
             outStream.writeStartElement("Export");
             marshaller = ctx.createMarshaller();
             marshaller.setListener(new MarshallerListener(outStream));

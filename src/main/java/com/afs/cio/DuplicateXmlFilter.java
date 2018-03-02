@@ -14,17 +14,22 @@ public class DuplicateXmlFilter extends BaseXmlFilter {
         app.run();
     }
 
+    @Override
+    public Class getInputClass() {
+        return RawLogInput.class;
+    }
+
     protected Map<String,RawLogInput> lastQueryCache = new HashMap<>();
 
     @Override
-    public RawLogInput filter(RawLogInput inputItem) {
-        RawLogInput result = inputItem;
+    public Object filter(Object objectItem) {
+        RawLogInput result = (RawLogInput)objectItem;
         // Check to see what the last query for this user was
-        RawLogInput lastQueryItem = lastQueryCache.get(inputItem.getUser());
-        if (lastQueryItem!=null&&lastQueryItem.getTerm().equalsIgnoreCase(inputItem.getTerm())) {
+        RawLogInput lastQueryItem = lastQueryCache.get(result.getUser());
+        lastQueryCache.put(result.getUser(),result);
+        if (lastQueryItem!=null&&lastQueryItem.getTerm().equalsIgnoreCase(result.getTerm())) {
             result = null;
         }
-        lastQueryCache.put(inputItem.getUser(),inputItem);
         return result;
     }
 }
