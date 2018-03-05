@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class StemNoiseXmlFilter extends BaseXmlFilter {
+public class StemNoiseXmlFilter extends BaseXmlFilter<RawLogInput,RawLogInput> {
 
     public static void main( String[] args )
     {
@@ -23,14 +23,13 @@ public class StemNoiseXmlFilter extends BaseXmlFilter {
         app.run();
     }
 
-    @Override
-    public Class getInputClass() {
-        return RawLogInput.class;
+    protected StemNoiseXmlFilter() {
+        super(RawLogInput.class,RawLogInput.class);
     }
 
     @Override
-    public Object filter(Object inputItem) {
-        RawLogInput logItem = (RawLogInput)inputItem;
+    public RawLogInput filter(RawLogInput inputItem) {
+        RawLogInput logItem = inputItem;
         List<String> cleanQuery = new ArrayList<>(Arrays.asList(logItem.getTerm().split("\\s")));
         try {
             cleanQuery = normalize(logItem.getTerm());

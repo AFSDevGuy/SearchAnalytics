@@ -5,7 +5,9 @@ import com.afs.cio.model.RawLogInput;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DuplicateXmlFilter extends BaseXmlFilter {
+public class DuplicateXmlFilter extends BaseXmlFilter<RawLogInput,RawLogInput> {
+
+
 
     public static void main( String[] args )
     {
@@ -14,15 +16,14 @@ public class DuplicateXmlFilter extends BaseXmlFilter {
         app.run();
     }
 
-    @Override
-    public Class getInputClass() {
-        return RawLogInput.class;
+    public DuplicateXmlFilter() {
+        super(RawLogInput.class, RawLogInput.class);
     }
 
     protected Map<String,RawLogInput> lastQueryCache = new HashMap<>();
 
     @Override
-    public Object filter(Object objectItem) {
+    public RawLogInput filter(RawLogInput objectItem) {
         RawLogInput result = (RawLogInput)objectItem;
         // Check to see what the last query for this user was
         RawLogInput lastQueryItem = lastQueryCache.get(result.getUser());

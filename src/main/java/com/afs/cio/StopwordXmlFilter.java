@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class StopwordXmlFilter extends BaseXmlFilter {
+public class StopwordXmlFilter extends BaseXmlFilter<RawLogInput,RawLogInput> {
 
     public static void main( String[] args )
     {
@@ -23,13 +23,12 @@ public class StopwordXmlFilter extends BaseXmlFilter {
         app.run();
     }
 
-    @Override
-    public Class getInputClass() {
-        return RawLogInput.class;
+    protected StopwordXmlFilter() {
+        super(RawLogInput.class,RawLogInput.class);
     }
 
     @Override
-    public Object filter(Object inputItem) {
+    public RawLogInput filter(RawLogInput inputItem) {
         List<String> cleanQuery = new ArrayList<>(Arrays.asList(((RawLogInput)inputItem).getTerm().split("\\s")));
         try {
             cleanQuery = normalize(((RawLogInput)inputItem).getTerm().toLowerCase());
@@ -43,7 +42,7 @@ public class StopwordXmlFilter extends BaseXmlFilter {
             }
             normalized.append(term);
         }
-        ((RawLogInput)inputItem).setTerm(normalized.toString());
+        inputItem.setTerm(normalized.toString());
         return inputItem;
     }
 

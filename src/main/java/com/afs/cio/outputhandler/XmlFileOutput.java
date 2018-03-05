@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * <p>This output handler exports items to an XML file. It uses the JDK-provided JAXB serializer to output
@@ -35,9 +36,15 @@ public class XmlFileOutput<T>  {
 
     protected Class itemClass;
 
+    protected Map<String,String> initAttributes;
+
     private XmlFileOutput() {
 
     };
+
+    public void setInitAttributes(Map<String, String> initAttributes) {
+        this.initAttributes = initAttributes;
+    }
 
     private class MarshallerListener extends Marshaller.Listener {
 
@@ -64,7 +71,7 @@ public class XmlFileOutput<T>  {
 
 
     }
-    public XmlFileOutput(Class itemClass) {
+    public XmlFileOutput(Class<T> itemClass) {
         this.itemClass = itemClass;
     }
 
@@ -115,6 +122,12 @@ public class XmlFileOutput<T>  {
             outStream.writeStartDocument(StandardCharsets.UTF_8.name(), "1.0");
             // TODO: customize with item class name if possible
             outStream.writeStartElement("Export");
+            if (this.initAttributes != null) {
+                for (Map.Entry<String,String> attribute:initAttributes.entrySet()) {
+                    outStream.writeAttribute(attribute.getKey(),attribute.getValue());
+                }
+            }
+            outStream.writeAttribute("attribute","value");
             marshaller = ctx.createMarshaller();
             marshaller.setListener(new MarshallerListener(outStream));
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);

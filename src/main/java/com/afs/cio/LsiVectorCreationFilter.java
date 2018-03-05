@@ -12,13 +12,17 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
 
-public class LsiVectorCreationFilter extends BaseXmlFilter {
+public class LsiVectorCreationFilter extends BaseXmlFilter<RawLogInput,LsiVectorLog> {
 
     public static void main( String[] args )
     {
         LsiVectorCreationFilter app = new LsiVectorCreationFilter();
         app.cmdLine(args);
         app.run();
+    }
+
+    protected LsiVectorCreationFilter() {
+        super(RawLogInput.class,LsiVectorLog.class);
     }
 
     DbConnectionManager dbMgr = new DbConnectionManager();
@@ -84,23 +88,14 @@ public class LsiVectorCreationFilter extends BaseXmlFilter {
         super.cmdLine(args,options,cmd);
     }
 
-    @Override
-    public Class getInputClass() {
-        return RawLogInput.class;
-    }
 
     @Override
-    public Class getOutputClass() {
-        return LsiVectorLog.class;
-    }
-
-    @Override
-    public Object filter(Object inputItem) {
+    public LsiVectorLog filter(RawLogInput inputItem) {
         Map<String, List<String>> keyMap = new HashMap<>();
         LsiVectorLog result = new LsiVectorLog();
-        result.setTerm(((RawLogInput)inputItem).getTerm());
-        result.setUser(((RawLogInput)inputItem).getUser());
-        result.setDate(((RawLogInput)inputItem).getDate());
+        result.setTerm(inputItem.getTerm());
+        result.setUser(inputItem.getUser());
+        result.setDate(inputItem.getDate());
         List<String> queryTerms = Arrays.asList(result.getTerm().split("\\s"));
         keyMap.put(features,queryTerms);
         LsiVector vector = LsiQueryTool.createVectorForKeyMap(index,keyMap,dbMgr,null);

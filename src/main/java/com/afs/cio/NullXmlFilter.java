@@ -2,7 +2,7 @@ package com.afs.cio;
 
 import com.afs.cio.model.RawLogInput;
 
-public class NullXmlFilter extends BaseXmlFilter {
+public class NullXmlFilter extends BaseXmlFilter<RawLogInput,RawLogInput> {
 
     public static void main( String[] args )
     {
@@ -11,13 +11,12 @@ public class NullXmlFilter extends BaseXmlFilter {
         app.run();
     }
 
-    @Override
-    public Class getInputClass() {
-        return RawLogInput.class;
+    protected NullXmlFilter() {
+        super(RawLogInput.class,RawLogInput.class);
     }
 
     @Override
-    public Object filter(Object inputItem) {
+    public RawLogInput filter(RawLogInput inputItem) {
         return inputItem;
     }
 }
