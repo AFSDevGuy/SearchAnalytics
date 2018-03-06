@@ -24,20 +24,32 @@ import java.util.Map;
  */
 public class XmlFileOutput<T>  {
 
-    protected String outputFilename;
-    protected String outputFileExtension;
 
+    /**
+     * XML marshaller - used to listen to specific XML events so we can help out with formatting
+     */
     protected Marshaller marshaller;
 
+    /**
+     * Where the output will be written
+     */
     protected XMLStreamWriter outStream;
 
-    protected int emptyItems = 0;
-    protected int fullItems = 0;
-
+    /**
+     * While the writer is class-agnostic, if you tell it what the base class is, it will annotate the
+     * export metadata with the full classname (TODO)
+     */
     protected Class itemClass;
 
+    /**
+     * name-value pairs that will be added to the document root element. Used to contain various types of
+     * metadata about the export
+     */
     protected Map<String,String> initAttributes;
 
+    /**
+     * Zero-argument constructor, used by XML serialization frameworks
+     */
     private XmlFileOutput() {
 
     };
@@ -46,6 +58,9 @@ public class XmlFileOutput<T>  {
         this.initAttributes = initAttributes;
     }
 
+    /**
+     * Listener that injects formatting between objects as they are written.
+     */
     private class MarshallerListener extends Marshaller.Listener {
 
         private XMLStreamWriter xsw;
@@ -75,22 +90,6 @@ public class XmlFileOutput<T>  {
         this.itemClass = itemClass;
     }
 
-    public String getOutputFilename() {
-        return outputFilename;
-    }
-
-    public void setOutputFilename(String outputFilename) {
-        this.outputFilename = outputFilename;
-    }
-    
-	public String getOutputFileExtension() {
-		return outputFileExtension;
-	}
-
-	public void setOutputFileExtension(String outputFileExtension) {
-		this.outputFileExtension = outputFileExtension;
-	}
-
     public XMLStreamWriter getOutStream() {
         return outStream;
     }
@@ -99,8 +98,12 @@ public class XmlFileOutput<T>  {
         this.outStream = outStream;
     }
 
+    /**
+     * Write the specific item to the output stream.
+     *
+     * @param item
+     */
     public void handleItem(T item) {
-        // Extract text from attachments (if any)
         try {
             synchronized (marshaller) {
                 marshaller.marshal(item,outStream);
@@ -112,6 +115,9 @@ public class XmlFileOutput<T>  {
     }
 
 
+    /**
+     * Initialization - call before writing any items.
+     */
     public void init() {
 
         try {
@@ -139,6 +145,9 @@ public class XmlFileOutput<T>  {
 
     }
 
+    /**
+     * Close out XML document
+     */
     public void close() {
         try {
         	//outStream.write("<completedDate>DATE</completedDate>");
@@ -158,8 +167,7 @@ public class XmlFileOutput<T>  {
     public String toString() {
         String results = null;
         synchronized(this) {
-            results = "[XmlFileOutput: "+outputFilename+" ("+ emptyItems +" empty, "
-                    + fullItems +" full, total="+(emptyItems + fullItems)+" ]";
+            results = "[XmlFileOutput: "+itemClass.getTypeName()+" ]";
         }
         return results;
     }

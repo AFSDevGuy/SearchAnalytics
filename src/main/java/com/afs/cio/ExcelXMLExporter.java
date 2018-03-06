@@ -1,7 +1,5 @@
 package com.afs.cio;
 
-import com.afs.cio.BaseXmlProcessor;
-import com.afs.cio.model.LsiVectorLog;
 import com.afs.cio.model.RawLogInput;
 import com.afs.cio.model.SearchCluster;
 import com.afs.cio.model.SpreadSheetQueryRow;
@@ -9,6 +7,9 @@ import com.afs.cio.model.SpreadSheetQueryRow;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Flatten the search clusters into a series of records with three fields. This can later be imported via CSV
+ */
 public class ExcelXMLExporter extends BaseXmlProcessor<SearchCluster,SpreadSheetQueryRow>{
 
     public static void main( String[] args )
@@ -19,7 +20,7 @@ public class ExcelXMLExporter extends BaseXmlProcessor<SearchCluster,SpreadSheet
     }
 
     public ExcelXMLExporter() {
-        super(SearchCluster.class, SpreadSheetQueryRow.class);
+        super(SearchCluster.class,SpreadSheetQueryRow.class);
     }
 
     @Override

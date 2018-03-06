@@ -5,13 +5,27 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
 
+/**
+ * Basic query log records, capture timestamp, query term, and username
+ */
 @XmlRootElement(name="RawLogInput")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class RawLogInput {
 
 
+    /**
+     * Query timestamp
+     */
     protected Date date;
+
+    /**
+     * Unparsed query
+     */
     protected String term;
+
+    /**
+     * Username
+     */
     protected String user;
 
     public RawLogInput() {

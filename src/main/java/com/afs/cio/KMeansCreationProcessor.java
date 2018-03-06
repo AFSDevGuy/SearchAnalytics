@@ -10,36 +10,46 @@ import de.lmu.ifi.dbs.elki.data.Clustering;
 import de.lmu.ifi.dbs.elki.data.DoubleVector;
 import de.lmu.ifi.dbs.elki.data.NumberVector;
 import de.lmu.ifi.dbs.elki.data.model.KMeansModel;
-import de.lmu.ifi.dbs.elki.data.type.TypeUtil;
 import de.lmu.ifi.dbs.elki.database.Database;
 import de.lmu.ifi.dbs.elki.database.StaticArrayDatabase;
 import de.lmu.ifi.dbs.elki.database.ids.DBID;
 import de.lmu.ifi.dbs.elki.database.ids.DBIDIter;
-import de.lmu.ifi.dbs.elki.database.ids.DBIDRange;
 import de.lmu.ifi.dbs.elki.database.ids.DBIDUtil;
-import de.lmu.ifi.dbs.elki.database.relation.Relation;
 import de.lmu.ifi.dbs.elki.datasource.ArrayAdapterDatabaseConnection;
 import de.lmu.ifi.dbs.elki.datasource.DatabaseConnection;
 import de.lmu.ifi.dbs.elki.datasource.bundle.ObjectBundle;
 import de.lmu.ifi.dbs.elki.distance.distancefunction.CosineDistanceFunction;
-import de.lmu.ifi.dbs.elki.distance.distancefunction.DistanceFunction;
-import de.lmu.ifi.dbs.elki.distance.distancefunction.minkowski.SquaredEuclideanDistanceFunction;
-import de.lmu.ifi.dbs.elki.math.linearalgebra.Vector;
 import de.lmu.ifi.dbs.elki.math.random.RandomFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang.ArrayUtils;
 
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
+/**
+ * Use the ELKI ML library to compute clusters for the search queries.
+ */
 public class KMeansCreationProcessor extends BaseXmlProcessor<LsiVectorLog,SearchCluster> {
 
+    /**
+     * Desired output cluster count - will default to something if you don't set it via command line
+     */
     protected int clusterCount = 0;
 
+    /**
+     * Maximum number of iterations in the KMeans algorithm. The default 0 value probably means "no limit"
+     */
     protected int maxIterations = 0;
 
+    /**
+     * Used to sort by query term, so that like query terms are grouped together in the output records
+     */
     Comparator<RawLogInput> termComparator = new Comparator<RawLogInput>() {
         @Override
         public int compare(RawLogInput o1, RawLogInput o2) {
@@ -47,6 +57,9 @@ public class KMeansCreationProcessor extends BaseXmlProcessor<LsiVectorLog,Searc
         }
     };
 
+    /**
+     * Used to sort by cluster size, so we output largest clusters first
+     */
     Comparator<SearchCluster> sizeComparator = new Comparator<SearchCluster>() {
         @Override
         public int compare(SearchCluster o1, SearchCluster o2) {

@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Use Lucene analyzer/filter to remove English stopwords from queries
+ */
 public class StopwordXmlFilter extends BaseXmlFilter<RawLogInput,RawLogInput> {
 
     public static void main( String[] args )

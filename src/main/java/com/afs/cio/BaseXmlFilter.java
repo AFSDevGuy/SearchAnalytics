@@ -1,145 +1,32 @@
 package com.afs.cio;
 
-import com.afs.cio.model.RawLogInput;
-import com.afs.cio.outputhandler.XmlFileOutput;
-import org.apache.commons.cli.*;
+/**
+ * Extend base XML reader/writer to expose one record at a time to the filter class.
+ *
+ * @param <S> class to expect in the input XML
+ * @param <T> class that will be written at the top level in the output XML
+ */
+public abstract class BaseXmlFilter<S,T> extends BaseXmlReaderWriter<S,T>{
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.stream.*;
-import javax.xml.transform.stream.StreamSource;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
-public abstract class BaseXmlFilter<S,T> {
-
-    protected InputStream inStreams[] = {System.in};
-
-    protected XMLStreamWriter outStream = null;
-
+    /**
+     * The actual filter class needs to implement (at least) this method. It is given one input item and should emit
+     * one (or none) output items.
+     *
+     * @param inputItem
+     * @return item to be written to output stream
+     */
     public abstract T filter(S inputItem);
 
-    protected Class<S> inClass;
-    protected Class<T> outClass;
-
-
     public BaseXmlFilter(Class<S> sClass, Class<T> tClass) {
-        this.inClass = sClass;
-        this.outClass = tClass;
-
-    }
-    private BaseXmlFilter() {}
-
-    protected void cmdLine(String[] args) {
-        this.cmdLine(args, null,null);
+        super(sClass,tClass);
     }
 
-
-    protected void cmdLine(String[] args, Options options, CommandLine cmd) {
-        if (options == null) {
-            options = new Options();
-            options.addOption(Option.builder("infile").hasArgs().desc("input file name").type(String.class).build());
-            options.addOption(Option.builder("outfile").hasArg().desc("output file name").type(String.class).build());
-        }
-
-        CommandLineParser parser = new DefaultParser();
-        if (cmd == null) {
-            try {
-                cmd = parser.parse(options, args);
-            } catch (ParseException e) {
-                System.err.println("Parsing failed.  Reason: " + e.getMessage());
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp("RawLogFilter", options);
-            }
-        }
-
-        if (cmd.hasOption("infile")) {
-            String[] filenames = cmd.getOptionValues("infile");
-            String errFile = null;
-            try {
-                inStreams = new InputStream[filenames.length];
-                int pos = 0;
-                for (String filename : filenames) {
-                    errFile = filename;
-                    inStreams[pos++] = new FileInputStream(filename);
-                }
-            } catch (Exception ex) {
-                System.err.println("cannot open: "+errFile+" "+ex.getMessage());
-                System.exit(-1);
-            }
-        }
-        XMLOutputFactory xof = XMLOutputFactory.newFactory();
-
-        if (cmd.hasOption("outfile")) {
-            String filename = cmd.getOptionValue("outfile");
-            try {
-                outStream = xof.createXMLStreamWriter(new OutputStreamWriter(new FileOutputStream(filename),
-                        StandardCharsets.UTF_8));
-            } catch (Exception ex) {
-                System.err.println("cannot open: "+filename+" "+ex.getMessage());
-                System.exit(-1);
-            }
-        } else {
-            try {
-                outStream = xof.createXMLStreamWriter(System.out);
-            } catch (Exception ex) {
-                System.err.println("cannot create XMLStreamWriter on stdout");
-                System.exit(-1);
-            }
+    @Override
+    protected void eachItem(S inputItem) {
+        T filtered = filter(inputItem);
+        if (filtered != null) {
+            handler.handleItem(filtered);
         }
     }
-
-    protected Map<String,Integer> columnMap = new HashMap<String, Integer>();
-
-    public void run() {
-        try {
-            XmlFileOutput<T> handler = new XmlFileOutput<>(this.outClass);
-            handler.setOutStream(outStream);
-            handler.init();
-
-            JAXBContext jc = JAXBContext.newInstance(this.inClass);
-            Unmarshaller unmarshaller = jc.createUnmarshaller();
-            for (InputStream inStream : inStreams) {
-                XMLInputFactory xif = XMLInputFactory.newFactory();
-                StreamSource xml = new StreamSource(inStream);
-                XMLStreamReader xsr = xif.createXMLStreamReader(xml);
-                xsr.nextTag();
-                String itemClassName = inClass.getSimpleName();
-                while(!xsr.getLocalName().equals(itemClassName)) {
-                    xsr.nextTag();
-                }
-                String tagName = "N/A";
-                while (xsr.getLocalName().equals(itemClassName)) {
-                    JAXBElement<S> jb = unmarshaller.unmarshal(xsr, inClass);
-                    T filtered = filter(jb.getValue());
-                    if (filtered != null) {
-                        handler.handleItem(filtered);
-                    }
-                    // Advance to next tag event
-                    while(xsr.hasNext()) {
-                        if (xsr.isStartElement()||xsr.isEndElement()) {
-                            break;
-                        }
-                        xsr.nextTag();
-                    }
-                    tagName = xsr.getLocalName();
-                }
-                xsr.close();
-            }
-            handler.close();
-
-        } catch (Exception ex) {
-            System.err.println("error processing input: " + ex.toString() + " " + ex.getMessage());
-            ex.printStackTrace(System.err);
-        }
-    }
-
-
 
 }

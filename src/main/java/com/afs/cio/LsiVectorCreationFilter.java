@@ -8,10 +8,11 @@ import com.agilex.phanerodb.model.LsiIndex;
 import com.agilex.phanerodb.model.LsiVector;
 import org.apache.commons.cli.*;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.*;
 
+/**
+ * Lookup/compute LSI vector values for the query terms and output the vectors with the query.
+ */
 public class LsiVectorCreationFilter extends BaseXmlFilter<RawLogInput,LsiVectorLog> {
 
     public static void main( String[] args )
@@ -25,32 +26,38 @@ public class LsiVectorCreationFilter extends BaseXmlFilter<RawLogInput,LsiVector
         super(RawLogInput.class,LsiVectorLog.class);
     }
 
+    /**
+     * Underlying LSI vector database
+     */
     DbConnectionManager dbMgr = new DbConnectionManager();
+
+    /**
+     * Index name to use within the LSI database
+     */
     LsiIndex index = null;
+
+    /**
+     * Name of the "features" table in the index
+     */
     String features = null;
+
+    /**
+     * Desired number of LSI vector components to write for each vector. 0 means no limit.
+     */
     int dimensions = 0;
 
     @Override
-    protected void cmdLine(String[] args) {
-        Options options = new Options();
+    protected void addCustomOptions(Options options) {
         options.addOption(Option.builder("jdbcurl").hasArg().desc("JDBC URL for Phanero DB").type(String.class).build());
         options.addOption(Option.builder("username").hasArg().desc("Username for Phanero DB").type(String.class).build());
         options.addOption(Option.builder("password").hasArg().desc("Password for Phanero DB").type(String.class).build());
         options.addOption(Option.builder("index").hasArg().desc("Index name to use in Phanero DB").type(String.class).build());
         options.addOption(Option.builder("features").hasArg().desc("Object type for words in Phanero DB").type(String.class).build());
         options.addOption(Option.builder("dimensions").hasArg().desc("Number of dimensions of LSI vector to use").type(String.class).build());
-        options.addOption(Option.builder("infile").hasArgs().desc("input file name").type(String.class).build());
-        options.addOption(Option.builder("outfile").hasArg().desc("output file name").type(String.class).build());
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse( options, args);
-        } catch (ParseException e) {
-            System.err.println( "Parsing failed.  Reason: " + e.getMessage() );
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "RawLogFilter", options );
-        }
+    }
 
+    @Override
+    protected void extractCustomOptionValues(CommandLine cmd) throws ParseException {
         Properties dbMgrProps = new Properties();
         if (cmd.hasOption("jdbcurl")) {
             dbMgrProps.setProperty(DbConnectionManager.PROP_URL, cmd.getOptionValue("jdbcurl"));
@@ -85,8 +92,8 @@ public class LsiVectorCreationFilter extends BaseXmlFilter<RawLogInput,LsiVector
         dbMgrProps.setProperty(DbConnectionManager.PROP_INITSIZE, "1");
         dbMgrProps.setProperty(DbConnectionManager.PROP_MAXACTIVE, "1");
         this.dbMgr.initializeDbConnectionPool(dbMgrProps);
-        super.cmdLine(args,options,cmd);
     }
+
 
 
     @Override
@@ -113,11 +120,5 @@ public class LsiVectorCreationFilter extends BaseXmlFilter<RawLogInput,LsiVector
         }
         return result;
     }
-
-    /*
-      public static LsiVector createVectorForKeyMap(LsiIndex index, Map<String, List<String>> query, DbConnectionManager dbManager,
-    		List<WeightedVector> explained){
-     */
-
 
 }

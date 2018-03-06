@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Apply Lucene Stemmer/Porter filter to input words.
+ */
 public class StemNoiseXmlFilter extends BaseXmlFilter<RawLogInput,RawLogInput> {
 
     public static void main( String[] args )

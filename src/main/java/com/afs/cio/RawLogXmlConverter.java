@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * Convert input Excel spreadsheet into our first XML file using the RawLogInput records.
+ */
 public class RawLogXmlConverter {
 
     protected InputStream inStreams[] = {System.in};
@@ -130,17 +133,6 @@ public class RawLogXmlConverter {
                         String searchTerm = cellStringValue(row, "Search term");
                         String userId = cellStringValue(row, "User");
                         newItem = new RawLogInput(itemDate, searchTerm, userId);
-
-                        // TODO: a more elegant way to do this
-                        if(row != null) {
-
-                            //Process simple fields
-//                            newRole.setcareerTrack(cellStringValue(row, "Role_Career_Track"));
-
-                            //Process date information
-//                            newRole.setStartDate(getDate(cellStringValue(row, "Role_Requested_Start_Date")));
-
-                        }
 
                         //Final check before passing along to handler
                         if (newItem != null) {
